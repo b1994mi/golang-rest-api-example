@@ -9,26 +9,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/b1994mi/golang-rest-api-example/model"
 	"github.com/joho/godotenv"
 	"github.com/uptrace/bunrouter"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
-
-type User struct {
-	ID             int        `json:"id"`
-	Email          string     `json:"email"`
-	Name           string     `json:"name"`
-	PhoneNumber    string     `json:"phone_number"`
-	Address        string     `json:"address"`
-	Password       string     `json:"password"`
-	IsUserActive   bool       `json:"is_user_active"`
-	VerificationAt time.Time  `json:"verification_at"`
-	ProfileImage   string     `json:"profile_image"`
-	CreatedAt      time.Time  `json:"created_at"`
-	UpdatedAt      time.Time  `json:"updated_at"`
-	DeletedAt      *time.Time `json:"deleted_at"`
-}
 
 func main() {
 	err := godotenv.Load(".env")
@@ -75,7 +61,7 @@ func main() {
 			return nil
 		}
 
-		var m User
+		var m model.User
 
 		err = db.Where("id", reqBody.ID).Find(&m).Error
 		if err != nil {
@@ -106,7 +92,7 @@ func main() {
 			return nil
 		}
 		now := time.Now()
-		err = db.Create(&User{
+		err = db.Create(&model.User{
 			Email:          "",
 			Name:           reqBody.Name,
 			PhoneNumber:    "",
@@ -145,7 +131,7 @@ func main() {
 			return nil
 		}
 
-		var m User
+		var m model.User
 
 		err = db.Where("id", reqBody.ID).Find(&m).Error
 		if err != nil {
