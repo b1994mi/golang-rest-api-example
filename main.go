@@ -1,15 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"time"
 
-	"github.com/b1994mi/golang-rest-api-example/model"
+	"github.com/b1994mi/golang-rest-api-example/handler"
 	"github.com/joho/godotenv"
 	"github.com/uptrace/bunrouter"
 	"gorm.io/driver/mysql"
@@ -45,115 +42,11 @@ func main() {
 		return nil
 	})
 
-	r.GET("/user", func(w http.ResponseWriter, req bunrouter.Request) error {
-		body, err := ioutil.ReadAll(req.Body)
-		if err != nil {
-			bunrouter.JSON(w, bunrouter.H{"message": err})
-			return nil
-		}
-
-		var reqBody struct {
-			ID int `json:"id"`
-		}
-		err = json.Unmarshal(body, &reqBody)
-		if err != nil {
-			bunrouter.JSON(w, bunrouter.H{"message": err})
-			return nil
-		}
-
-		var m model.User
-
-		err = db.Where("id", reqBody.ID).Find(&m).Error
-		if err != nil {
-			bunrouter.JSON(w, bunrouter.H{
-				"message": err,
-			})
-		}
-
-		bunrouter.JSON(w, bunrouter.H{
-			"data": m,
-		})
-		return nil
-	})
-
-	r.POST("/user", func(w http.ResponseWriter, req bunrouter.Request) error {
-		body, err := ioutil.ReadAll(req.Body)
-		if err != nil {
-			bunrouter.JSON(w, bunrouter.H{"message": err})
-			return nil
-		}
-
-		var reqBody struct {
-			Name string `json:"name"`
-		}
-		err = json.Unmarshal(body, &reqBody)
-		if err != nil {
-			bunrouter.JSON(w, bunrouter.H{"message": err})
-			return nil
-		}
-		now := time.Now()
-		err = db.Create(&model.User{
-			Email:          "",
-			Name:           reqBody.Name,
-			PhoneNumber:    "",
-			Address:        "",
-			Password:       "",
-			IsUserActive:   false,
-			VerificationAt: now,
-			ProfileImage:   "",
-			CreatedAt:      now,
-		}).Error
-		if err != nil {
-			bunrouter.JSON(w, bunrouter.H{
-				"message": err,
-			})
-		}
-
-		bunrouter.JSON(w, bunrouter.H{
-			"acknowledge": true,
-		})
-		return nil
-	})
-
-	r.POST("/verify", func(w http.ResponseWriter, req bunrouter.Request) error {
-		body, err := ioutil.ReadAll(req.Body)
-		if err != nil {
-			bunrouter.JSON(w, bunrouter.H{"message": err})
-			return nil
-		}
-
-		var reqBody struct {
-			ID int `json:"id"`
-		}
-		err = json.Unmarshal(body, &reqBody)
-		if err != nil {
-			bunrouter.JSON(w, bunrouter.H{"message": err})
-			return nil
-		}
-
-		var m model.User
-
-		err = db.Where("id", reqBody.ID).Find(&m).Error
-		if err != nil {
-			bunrouter.JSON(w, bunrouter.H{
-				"message": err,
-			})
-		}
-
-		m.IsUserActive = true
-
-		err = db.Save(&m).Debug().Error
-		if err != nil {
-			bunrouter.JSON(w, bunrouter.H{
-				"message": err,
-			})
-		}
-
-		bunrouter.JSON(w, bunrouter.H{
-			"acknowledge": true,
-		})
-		return nil
-	})
+	// routes with handlers
+	h := handler.NewHandler(db)
+	r.GET("/user", h.FindHandler)
+	r.POST("/user", h.CreateHandler)
+	r.POST("/verify", h.VerifyHandler)
 
 	port := ":5000"
 	log.Printf("running on port %v", port)
