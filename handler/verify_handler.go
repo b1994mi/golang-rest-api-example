@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/b1994mi/golang-rest-api-example/model"
 	"github.com/b1994mi/golang-rest-api-example/request"
@@ -34,6 +35,7 @@ func (h *handler) VerifyHandler(w http.ResponseWriter, req bunrouter.Request) er
 	}
 
 	m.IsUserActive = true
+	m.VerificationAt = time.Now()
 
 	err = h.db.Save(&m).Debug().Error
 	if err != nil {

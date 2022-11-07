@@ -24,17 +24,17 @@ func (h *handler) CreateHandler(w http.ResponseWriter, req bunrouter.Request) er
 		bunrouter.JSON(w, bunrouter.H{"message": err})
 		return nil
 	}
+
 	now := time.Now()
+
 	err = h.db.Create(&model.User{
-		Email:          "",
-		Name:           reqBody.Name,
-		PhoneNumber:    "",
-		Address:        "",
-		Password:       "",
-		IsUserActive:   false,
-		VerificationAt: now,
-		ProfileImage:   "",
-		CreatedAt:      now,
+		Email:        reqBody.Email,
+		Name:         reqBody.Name,
+		PhoneNumber:  reqBody.PhoneNumber,
+		Address:      reqBody.Address,
+		Password:     reqBody.Password,
+		ProfileImage: reqBody.ProfileImage,
+		CreatedAt:    now,
 	}).Error
 	if err != nil {
 		bunrouter.JSON(w, bunrouter.H{
