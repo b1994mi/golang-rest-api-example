@@ -35,7 +35,8 @@ func (h *handler) VerifyHandler(w http.ResponseWriter, req bunrouter.Request) er
 	}
 
 	m.IsUserActive = true
-	m.VerificationAt = time.Now()
+	now := time.Now()
+	m.VerificationAt = &now
 
 	err = h.db.Save(&m).Debug().Error
 	if err != nil {
