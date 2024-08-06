@@ -2,7 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -12,7 +12,7 @@ import (
 )
 
 func (h *handler) VerifyHandler(w http.ResponseWriter, req bunrouter.Request) error {
-	body, err := ioutil.ReadAll(req.Body)
+	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		bunrouter.JSON(w, bunrouter.H{"message": err})
 		return nil

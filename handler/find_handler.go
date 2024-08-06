@@ -2,7 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/b1994mi/golang-rest-api-example/model"
@@ -11,7 +11,7 @@ import (
 )
 
 func (h *handler) FindHandler(w http.ResponseWriter, req bunrouter.Request) error {
-	body, err := ioutil.ReadAll(req.Body)
+	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		bunrouter.JSON(w, bunrouter.H{"message": err})
 		return nil
