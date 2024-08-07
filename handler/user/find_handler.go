@@ -1,4 +1,4 @@
-package handler
+package user
 
 import (
 	"github.com/b1994mi/golang-rest-api-example/util"

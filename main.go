@@ -6,11 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/b1994mi/golang-rest-api-example/handler"
-	"github.com/b1994mi/golang-rest-api-example/model"
-	"github.com/b1994mi/golang-rest-api-example/util"
 	"github.com/joho/godotenv"
-	"github.com/uptrace/bunrouter"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -35,20 +31,7 @@ func main() {
 		panic(err)
 	}
 
-	// routes
-	routes := bunrouter.New()
-	routes.GET("/", func(w http.ResponseWriter, req bunrouter.Request) error {
-		bunrouter.JSON(w, bunrouter.H{
-			"message": "pong",
-		})
-		return nil
-	})
-
-	// routes with handlers
-	h := handler.NewHandler(model.NewUserRepo(db))
-	routes.GET("/user", util.MakeHandler(h.FindHandler))
-	routes.POST("/user", util.MakeHandler(h.CreateHandler))
-	routes.POST("/verify", util.MakeHandler(h.VerifyHandler))
+	routes := setupRoutes(db)
 
 	port := ":5000"
 	log.Printf("running on port %v", port)
