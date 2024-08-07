@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"io"
-	"net/http"
 	"time"
 
 	"github.com/b1994mi/golang-rest-api-example/model"
@@ -11,27 +10,23 @@ import (
 	"github.com/uptrace/bunrouter"
 )
 
-func (h *handler) VerifyHandler(w http.ResponseWriter, req bunrouter.Request) error {
-	body, err := io.ReadAll(req.Body)
+func (h *handler) VerifyHandler(r bunrouter.Request) (any, error) {
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		bunrouter.JSON(w, bunrouter.H{"message": err})
-		return nil
+		return nil, err
 	}
 
 	var reqBody request.User
 	err = json.Unmarshal(body, &reqBody)
 	if err != nil {
-		bunrouter.JSON(w, bunrouter.H{"message": err})
-		return nil
+		return nil, err
 	}
 
 	var m model.User
 
 	err = h.db.Where("id", reqBody.ID).Find(&m).Error
 	if err != nil {
-		bunrouter.JSON(w, bunrouter.H{
-			"message": err,
-		})
+		return nil, err
 	}
 
 	m.IsUserActive = true
@@ -40,13 +35,8 @@ func (h *handler) VerifyHandler(w http.ResponseWriter, req bunrouter.Request) er
 
 	err = h.db.Save(&m).Debug().Error
 	if err != nil {
-		bunrouter.JSON(w, bunrouter.H{
-			"message": err,
-		})
+		return nil, err
 	}
 
-	bunrouter.JSON(w, bunrouter.H{
-		"acknowledge": true,
-	})
-	return nil
+	return m, nil
 }

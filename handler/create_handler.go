@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"io"
-	"net/http"
 	"time"
 
 	"github.com/b1994mi/golang-rest-api-example/model"
@@ -11,23 +10,21 @@ import (
 	"github.com/uptrace/bunrouter"
 )
 
-func (h *handler) CreateHandler(w http.ResponseWriter, req bunrouter.Request) error {
-	body, err := io.ReadAll(req.Body)
+func (h *handler) CreateHandler(r bunrouter.Request) (any, error) {
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		bunrouter.JSON(w, bunrouter.H{"message": err})
-		return nil
+		return nil, err
 	}
 
 	var reqBody request.User
 	err = json.Unmarshal(body, &reqBody)
 	if err != nil {
-		bunrouter.JSON(w, bunrouter.H{"message": err})
-		return nil
+		return nil, err
 	}
 
 	now := time.Now()
 
-	err = h.db.Create(&model.User{
+	m := model.User{
 		Email:        reqBody.Email,
 		Name:         reqBody.Name,
 		PhoneNumber:  reqBody.PhoneNumber,
@@ -35,15 +32,12 @@ func (h *handler) CreateHandler(w http.ResponseWriter, req bunrouter.Request) er
 		Password:     reqBody.Password,
 		ProfileImage: reqBody.ProfileImage,
 		CreatedAt:    now,
-	}).Error
-	if err != nil {
-		bunrouter.JSON(w, bunrouter.H{
-			"message": err,
-		})
 	}
 
-	bunrouter.JSON(w, bunrouter.H{
-		"acknowledge": true,
-	})
-	return nil
+	err = h.db.Create(&m).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return m, nil
 }
