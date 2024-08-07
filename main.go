@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/b1994mi/golang-rest-api-example/handler"
+	"github.com/b1994mi/golang-rest-api-example/model"
 	"github.com/b1994mi/golang-rest-api-example/util"
 	"github.com/joho/godotenv"
 	"github.com/uptrace/bunrouter"
@@ -44,7 +45,7 @@ func main() {
 	})
 
 	// routes with handlers
-	h := handler.NewHandler(db)
+	h := handler.NewHandler(model.NewUserRepo(db))
 	routes.GET("/user", util.MakeHandler(h.FindHandler))
 	routes.POST("/user", util.MakeHandler(h.CreateHandler))
 	routes.POST("/verify", util.MakeHandler(h.VerifyHandler))

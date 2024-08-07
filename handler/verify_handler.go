@@ -5,7 +5,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/b1994mi/golang-rest-api-example/model"
 	"github.com/b1994mi/golang-rest-api-example/request"
 	"github.com/uptrace/bunrouter"
 )
@@ -22,9 +21,9 @@ func (h *handler) VerifyHandler(r bunrouter.Request) (any, error) {
 		return nil, err
 	}
 
-	var m model.User
-
-	err = h.db.Where("id", reqBody.ID).Find(&m).Error
+	m, err := h.userRepo.FindOneBy(map[string]interface{}{
+		"id": reqBody.ID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -33,10 +32,15 @@ func (h *handler) VerifyHandler(r bunrouter.Request) (any, error) {
 	now := time.Now()
 	m.VerificationAt = &now
 
-	err = h.db.Save(&m).Debug().Error
+	tx := h.userRepo.StartTx()
+	defer tx.Rollback()
+
+	err = h.userRepo.Update(m, tx)
 	if err != nil {
 		return nil, err
 	}
+
+	tx.Commit()
 
 	return m, nil
 }

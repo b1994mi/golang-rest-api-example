@@ -1,17 +1,17 @@
 package handler
 
 import (
-	"gorm.io/gorm"
+	"github.com/b1994mi/golang-rest-api-example/model"
 )
 
 type handler struct {
-	db *gorm.DB
+	userRepo model.UserRepo
 }
 
 func NewHandler(
-	db *gorm.DB,
+	userRepo model.UserRepo,
 ) *handler {
 	return &handler{
-		db,
+		userRepo,
 	}
 }

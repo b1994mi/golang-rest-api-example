@@ -24,7 +24,10 @@ func (h *handler) CreateHandler(r bunrouter.Request) (any, error) {
 
 	now := time.Now()
 
-	m := model.User{
+	tx := h.userRepo.StartTx()
+	defer tx.Rollback()
+
+	m, err := h.userRepo.Create(&model.User{
 		Email:        reqBody.Email,
 		Name:         reqBody.Name,
 		PhoneNumber:  reqBody.PhoneNumber,
@@ -32,12 +35,12 @@ func (h *handler) CreateHandler(r bunrouter.Request) (any, error) {
 		Password:     reqBody.Password,
 		ProfileImage: reqBody.ProfileImage,
 		CreatedAt:    now,
-	}
-
-	err = h.db.Create(&m).Error
+	}, tx)
 	if err != nil {
 		return nil, err
 	}
+
+	tx.Commit()
 
 	return m, nil
 }
