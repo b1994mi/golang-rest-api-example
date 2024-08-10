@@ -8,14 +8,13 @@ import (
 )
 
 type User struct {
-	ID          int       `json:"id"`
-	UserID      string    `json:"user_id"`
+	ID          string    `json:"user_id"`
 	Email       string    `json:"email"`
 	FirstName   string    `json:"first_name"`
 	LastName    string    `json:"last_name"`
 	PhoneNumber string    `json:"phone_number"`
 	Address     string    `json:"address"`
-	Pin         string    `json:"pin"`
+	Pin         string    `json:"-"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 

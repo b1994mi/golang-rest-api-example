@@ -34,7 +34,7 @@ func setupRoutes(
 		util.ShouldBindJSON,
 	))
 
-	routes.GET("/user/:id", util.MakeHandler(
+	routes.GET("/user/:user_id", util.MakeHandler(
 		userHandler.FindHandler,
 		util.ShouldBindUri,
 	))
