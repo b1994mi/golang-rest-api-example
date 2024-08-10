@@ -52,7 +52,7 @@ func ShouldBindUri(obj any, r bunrouter.Request) error {
 	}
 
 	t := rv.Type()
-	params := bunrouter.ParamsFromContext(r.Context())
+	params := r.Params()
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		val, ok := field.Tag.Lookup("uri")
