@@ -1,0 +1,5 @@
+development:
+  dialect: mysql
+  datasource: test:test@tcp(127.0.0.1:3306)/test?parseTime=True&loc=Local
+  dir: migration
+  table: migrations
