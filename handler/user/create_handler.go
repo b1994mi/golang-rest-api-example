@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/b1994mi/golang-rest-api-example/model"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -21,6 +22,7 @@ func (h *handler) CreateHandler(req *request) (any, error) {
 	defer tx.Rollback()
 
 	m, err := h.userRepo.Create(&model.User{
+		UserID:      uuid.New().String(),
 		Email:       req.Email,
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
