@@ -29,9 +29,15 @@ func setupRoutes(
 		userRepo,
 	)
 
-	routes.GET("/user", util.MakeHandler(userHandler.FindHandler))
-	routes.POST("/user", util.MakeHandler(userHandler.CreateHandler))
-	routes.POST("/verify", util.MakeHandler(userHandler.VerifyHandler))
+	routes.POST("/register", util.MakeHandler(
+		userHandler.CreateHandler,
+		util.ShouldBindJSON,
+	))
+
+	routes.GET("/user/:id", util.MakeHandler(
+		userHandler.FindHandler,
+		util.ShouldBindUri,
+	))
 
 	return routes
 }

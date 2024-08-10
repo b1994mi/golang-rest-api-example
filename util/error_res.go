@@ -107,10 +107,27 @@ func findInternalCode(s string) (internalCode, format string) {
 	// but make sure to avoid naked returns + named return values in this code base bcs it's confusing
 }
 
-// Handler wrapper to abstract away the error response boilerplate
-func MakeHandler(h func(r bunrouter.Request) (any, error)) bunrouter.HandlerFunc {
+type HandlerFunc[T any] func(*T) (any, error)
+type BindFunc func(any, bunrouter.Request) error
+
+// Handler wrapper to abstract away json/uri/form binding and error response boilerplate.
+// I specifically make bind funcs as variadic because it's better syntax than using slice.
+func MakeHandler[T any](h HandlerFunc[T], binds ...BindFunc) bunrouter.HandlerFunc {
 	return func(w http.ResponseWriter, r bunrouter.Request) error {
-		obj, err := h(r)
+		var reqBody T
+		for _, b := range binds {
+			err := b(&reqBody, r)
+			if err != nil {
+				log.Printf("BindFunc error: %v", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				bunrouter.JSON(w, bunrouter.H{
+					"message": "Uh oh no, something went wrong :(",
+				})
+				return err
+			}
+		}
+
+		obj, err := h(&reqBody)
 		if err != nil {
 			switch e := err.(type) {
 			case StatusError:
@@ -119,18 +136,21 @@ func MakeHandler(h func(r bunrouter.Request) (any, error)) bunrouter.HandlerFunc
 					"internalCode": e.InternalCode,
 					"message":      e.Error(),
 				})
+				return err
 			case StatusErrorLogged:
 				log.Printf("makeHandler StatusErrorLogged: %v", err)
 				w.WriteHeader(e.HTTPCode)
 				bunrouter.JSON(w, bunrouter.H{
 					"message": "Uh oh no, something went wrong :(",
 				})
+				return err
 			default:
 				log.Printf("makeHandler error: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				bunrouter.JSON(w, bunrouter.H{
 					"message": "Uh oh no, something went wrong :(",
 				})
+				return err
 			}
 		}
 
