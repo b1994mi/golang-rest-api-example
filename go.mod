@@ -6,6 +6,7 @@ require github.com/uptrace/bunrouter v1.0.19
 
 require (
 	github.com/joho/godotenv v1.4.0
+	golang.org/x/crypto v0.26.0
 	gorm.io/driver/mysql v1.4.3
 	gorm.io/gorm v1.24.1
 )
