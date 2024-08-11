@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/b1994mi/golang-rest-api-example/handler/auth"
+	"github.com/b1994mi/golang-rest-api-example/handler/transaction"
 	"github.com/b1994mi/golang-rest-api-example/handler/user"
 	"github.com/b1994mi/golang-rest-api-example/model"
 	"github.com/b1994mi/golang-rest-api-example/util"
@@ -25,6 +26,7 @@ func setupRoutes(
 	// init all repos for dependency injection
 	userRepo := model.NewUserRepo(db)
 	userTokenRepo := model.NewUserTokenRepo(db)
+	userTransationRepo := model.NewUserTransactionRepo(db)
 
 	// routes with handlers
 	userHandler := user.NewHandler(
@@ -53,6 +55,17 @@ func setupRoutes(
 
 	routes.POST("/refresh-token", util.MakeHandler(
 		authHandler.RefreshTokenHandler,
+		util.ShouldBindJSON,
+	))
+
+	transactionHandler := transaction.NewHandler(
+		userRepo,
+		userTransationRepo,
+	)
+
+	routes.POST("/topup", util.MakeHandler(
+		transactionHandler.TopUpHandler,
+		util.ShouldBindJWT,
 		util.ShouldBindJSON,
 	))
 
