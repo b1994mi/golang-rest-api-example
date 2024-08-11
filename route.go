@@ -6,14 +6,17 @@ import (
 	"github.com/b1994mi/golang-rest-api-example/handler/auth"
 	"github.com/b1994mi/golang-rest-api-example/handler/transaction"
 	"github.com/b1994mi/golang-rest-api-example/handler/user"
+	"github.com/b1994mi/golang-rest-api-example/message"
 	"github.com/b1994mi/golang-rest-api-example/model"
 	"github.com/b1994mi/golang-rest-api-example/util"
+	"github.com/streadway/amqp"
 	"github.com/uptrace/bunrouter"
 	"gorm.io/gorm"
 )
 
 func setupRoutes(
 	db *gorm.DB,
+	conn *amqp.Connection,
 ) *bunrouter.Router {
 	routes := bunrouter.New()
 	routes.GET("/", func(w http.ResponseWriter, req bunrouter.Request) error {
@@ -26,7 +29,8 @@ func setupRoutes(
 	// init all repos for dependency injection
 	userRepo := model.NewUserRepo(db)
 	userTokenRepo := model.NewUserTokenRepo(db)
-	userTransationRepo := model.NewUserTransactionRepo(db)
+	userTransactionRepo := model.NewUserTransactionRepo(db)
+	transferRepo := message.NewTransferRepo(conn)
 
 	// routes with handlers
 	userHandler := user.NewHandler(
@@ -60,11 +64,18 @@ func setupRoutes(
 
 	transactionHandler := transaction.NewHandler(
 		userRepo,
-		userTransationRepo,
+		userTransactionRepo,
+		transferRepo,
 	)
 
 	routes.POST("/topup", util.MakeHandler(
 		transactionHandler.TopUpHandler,
+		util.ShouldBindJWT,
+		util.ShouldBindJSON,
+	))
+
+	routes.POST("/transfer", util.MakeHandler(
+		transactionHandler.TransferHandler,
 		util.ShouldBindJWT,
 		util.ShouldBindJSON,
 	))

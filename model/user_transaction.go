@@ -5,6 +5,7 @@ import (
 
 	"github.com/b1994mi/golang-rest-api-example/util"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UserTransaction struct {
@@ -51,6 +52,7 @@ type UserTransactionRepo interface {
 	Update(m *UserTransaction, tx *gorm.DB) error
 	Delete(m *UserTransaction, tx *gorm.DB) error
 	FindOneBy(criteria map[string]any) (*UserTransaction, error)
+	FindOneForUpdateBy(criteria map[string]any, tx *gorm.DB) (*UserTransaction, error)
 	FindBy(criteria map[string]any, page, size int) ([]*UserTransaction, error)
 	Count(criteria map[string]any) int64
 }
@@ -87,14 +89,25 @@ func (rpo *userTransactionRepo) Delete(m *UserTransaction, tx *gorm.DB) error {
 }
 
 func (rpo *userTransactionRepo) FindOneBy(criteria map[string]any) (*UserTransaction, error) {
-	var m *UserTransaction
+	var m UserTransaction
 
-	err := rpo.db.Where(criteria).Take(m).Error
+	err := rpo.db.Where(criteria).Take(&m).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return m, nil
+	return &m, nil
+}
+
+func (rpo *userTransactionRepo) FindOneForUpdateBy(criteria map[string]any, tx *gorm.DB) (*UserTransaction, error) {
+	var m UserTransaction
+
+	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where(criteria).Take(&m).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &m, nil
 }
 
 func (rpo *userTransactionRepo) FindBy(criteria map[string]any, page, size int) ([]*UserTransaction, error) {
