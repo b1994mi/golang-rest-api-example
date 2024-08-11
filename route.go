@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/b1994mi/golang-rest-api-example/handler/auth"
 	"github.com/b1994mi/golang-rest-api-example/handler/user"
 	"github.com/b1994mi/golang-rest-api-example/model"
 	"github.com/b1994mi/golang-rest-api-example/util"
@@ -23,6 +24,7 @@ func setupRoutes(
 
 	// init all repos for dependency injection
 	userRepo := model.NewUserRepo(db)
+	userTokenRepo := model.NewUserTokenRepo(db)
 
 	// routes with handlers
 	userHandler := user.NewHandler(
@@ -37,6 +39,21 @@ func setupRoutes(
 	routes.GET("/user/:user_id", util.MakeHandler(
 		userHandler.FindHandler,
 		util.ShouldBindUri,
+	))
+
+	authHandler := auth.NewHandler(
+		userRepo,
+		userTokenRepo,
+	)
+
+	routes.POST("/login", util.MakeHandler(
+		authHandler.LoginHandler,
+		util.ShouldBindJSON,
+	))
+
+	routes.POST("/refresh-token", util.MakeHandler(
+		authHandler.RefreshTokenHandler,
+		util.ShouldBindJSON,
 	))
 
 	return routes
