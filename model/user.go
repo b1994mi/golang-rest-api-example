@@ -14,6 +14,7 @@ type User struct {
 	PhoneNumber string    `json:"phone_number"`
 	Address     string    `json:"address"`
 	Pin         string    `json:"-"`
+	IsDeleted   bool      `json:"-"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 
