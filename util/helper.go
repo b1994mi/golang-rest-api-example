@@ -2,13 +2,16 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"strings"
 	// "os"
 	// "path"
 	"reflect"
 	"strconv"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/uptrace/bunrouter"
 )
 
@@ -99,6 +102,68 @@ func ShouldBindQuery(obj any, r bunrouter.Request) error {
 		rv.FieldByName(field.Name).Set(reflect.ValueOf(
 			r.URL.Query().Get(val),
 		))
+	}
+
+	return nil
+}
+
+// An alternative to your typical auth middleware because it will parse JWT and
+// put it into any struct's field with `jwt` tag.
+// Does parsing JWT must be done through a "middleware"? I don't think so
+func ShouldBindJWT(obj any, r bunrouter.Request) error {
+	rv := reflect.ValueOf(obj)
+	if rv.Kind() == reflect.Ptr {
+		rv = reflect.Indirect(rv)
+	}
+
+	token := r.Header["Authorization"]
+	if len(token) < 1 {
+		return New401Res("please use auth bearer token")
+	}
+
+	splitToken := strings.Split(token[0], " ")
+	if len(splitToken) != 2 || splitToken[0] != "Bearer" {
+		return New401Res("please use auth bearer token")
+	}
+
+	parsedToken, err := jwt.Parse(splitToken[1], func(t *jwt.Token) (interface{}, error) {
+		_, ok := t.Method.(*jwt.SigningMethodHMAC)
+		if !ok {
+			return "", nil
+		}
+
+		return []byte("some-secret"), nil
+	})
+	if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
+		return err
+	}
+
+	if errors.Is(err, jwt.ErrTokenExpired) {
+		return New401Res("token has expired, please refresh")
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		return New401Res("please use auth bearer token")
+	}
+
+	t := rv.Type()
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		val, ok := field.Tag.Lookup("jwt")
+		if !ok {
+			continue
+		}
+
+		extractedParam := claims[val]
+
+		rvField := rv.FieldByName(field.Name)
+		switch rvField.Kind() {
+		case reflect.String:
+			rvField.Set(reflect.ValueOf(extractedParam))
+		default:
+			return fmt.Errorf("can not set %v", rvField.Kind())
+		}
 	}
 
 	return nil
