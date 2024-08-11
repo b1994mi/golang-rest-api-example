@@ -118,12 +118,29 @@ func MakeHandler[T any](h HandlerFunc[T], binds ...BindFunc) bunrouter.HandlerFu
 		for _, b := range binds {
 			err := b(&reqBody, r)
 			if err != nil {
-				log.Printf("BindFunc error: %v", err)
-				w.WriteHeader(http.StatusInternalServerError)
-				bunrouter.JSON(w, bunrouter.H{
-					"message": "Uh oh no, something went wrong :(",
-				})
-				return err
+				switch e := err.(type) {
+				case StatusError:
+					w.WriteHeader(e.HTTPCode)
+					bunrouter.JSON(w, bunrouter.H{
+						"internalCode": e.InternalCode,
+						"message":      e.Error(),
+					})
+					return err
+				case StatusErrorLogged:
+					log.Printf("makeHandler StatusErrorLogged: %v", err)
+					w.WriteHeader(e.HTTPCode)
+					bunrouter.JSON(w, bunrouter.H{
+						"message": "Uh oh no, something went wrong :(",
+					})
+					return err
+				default:
+					log.Printf("makeHandler error: %v", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					bunrouter.JSON(w, bunrouter.H{
+						"message": "Uh oh no, something went wrong :(",
+					})
+					return err
+				}
 			}
 		}
 
