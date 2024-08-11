@@ -5,10 +5,12 @@ import (
 
 	"github.com/b1994mi/golang-rest-api-example/util"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type User struct {
 	ID          string    `json:"user_id"`
+	Wallet      float64   `json:"-"`
 	FirstName   string    `json:"first_name"`
 	LastName    string    `json:"last_name"`
 	PhoneNumber string    `json:"phone_number"`
@@ -24,6 +26,7 @@ type UserRepo interface {
 	Update(m *User, tx *gorm.DB) error
 	Delete(m *User, tx *gorm.DB) error
 	FindOneBy(criteria map[string]any) (*User, error)
+	FindOneForUpdateBy(criteria map[string]any, tx *gorm.DB) (*User, error)
 	FindBy(criteria map[string]any, page, size int) ([]*User, error)
 	Count(criteria map[string]any) int64
 }
@@ -63,6 +66,17 @@ func (rpo *userRepo) FindOneBy(criteria map[string]any) (*User, error) {
 	var m User
 
 	err := rpo.db.Where(criteria).Take(&m).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &m, nil
+}
+
+func (rpo *userRepo) FindOneForUpdateBy(criteria map[string]any, tx *gorm.DB) (*User, error) {
+	var m User
+
+	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where(criteria).Take(&m).Error
 	if err != nil {
 		return nil, err
 	}
