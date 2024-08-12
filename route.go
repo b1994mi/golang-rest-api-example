@@ -93,6 +93,12 @@ func setupRoutes(
 		util.ShouldBindJSON,
 	))
 
+	routes.POST("/pay", util.MakeHandler(
+		transactionHandler.PaymentHandler,
+		util.ShouldBindJWT,
+		util.ShouldBindJSON,
+	))
+
 	return routes
 }
 
