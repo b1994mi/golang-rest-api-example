@@ -10,19 +10,21 @@ import (
 
 type UserTransaction struct {
 	ID              string            `json:"-"`
-	UserID          string            `json:"user_id"`
-	HandlingType    HandlingType      `json:"handling_type"`
+	UserID          string            `json:"-"`
+	HandlingType    HandlingType      `json:"-"`
 	TransactionType TransactionType   `json:"transaction_type"`
 	Status          TransactionStatus `json:"status"`
 	Amount          float64           `json:"amount"`
 	Remarks         string            `json:"remarks"`
 	BalanceBefore   float64           `json:"balance_before"`
 	BalanceAfter    float64           `json:"balance_after"`
-	CreatedAt       time.Time         `json:"created_at"`
+	CreatedAt       time.Time         `json:"-"`
 
 	TopUpID    string `json:"top_up_id" gorm:"-"`
 	PaymentID  string `json:"payment_id" gorm:"-"`
 	TransferID string `json:"transfer_id" gorm:"-"`
+
+	CreatedDate string `json:"created_date" gorm:"-"`
 }
 
 func (m *UserTransaction) TableName() string {

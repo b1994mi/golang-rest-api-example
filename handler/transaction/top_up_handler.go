@@ -29,7 +29,7 @@ func (h *handler) TopUpHandler(req *request) (any, error) {
 		return nil, err
 	}
 
-	_, err = h.userTransactionRepo.Create(&model.UserTransaction{
+	m, err := h.userTransactionRepo.Create(&model.UserTransaction{
 		ID:              uuid.New().String(),
 		UserID:          user.ID,
 		HandlingType:    model.TopUp,
@@ -47,5 +47,7 @@ func (h *handler) TopUpHandler(req *request) (any, error) {
 
 	tx.Commit()
 
-	return req, nil
+	m.TopUpID = m.ID
+	m.CreatedDate = m.CreatedAt.Format("2006-01-02 15:04:05")
+	return m, nil
 }
