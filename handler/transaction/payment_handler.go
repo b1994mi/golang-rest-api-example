@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/b1994mi/golang-rest-api-example/model"
+	"github.com/b1994mi/golang-rest-api-example/util"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -24,6 +25,11 @@ func (h *handler) PaymentHandler(req *request) (any, error) {
 
 	balanceBefore := user.Wallet
 	user.Wallet = user.Wallet - req.Amount
+
+	if user.Wallet < 0 {
+		return nil, util.New409Res("balance is not enough")
+	}
+
 	err = h.userRepo.Update(user, tx)
 	if err != nil {
 		return nil, err

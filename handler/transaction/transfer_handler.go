@@ -6,6 +6,7 @@ import (
 
 	"github.com/b1994mi/golang-rest-api-example/message"
 	"github.com/b1994mi/golang-rest-api-example/model"
+	"github.com/b1994mi/golang-rest-api-example/util"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -28,6 +29,10 @@ func (h *handler) TransferHandler(req *request) (any, error) {
 	err = h.userRepo.Update(user, tx)
 	if err != nil {
 		return nil, err
+	}
+
+	if user.Wallet < 0 {
+		return nil, util.New409Res("balance is not enough")
 	}
 
 	trfSource, err := h.userTransactionRepo.Create(&model.UserTransaction{
