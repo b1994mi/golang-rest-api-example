@@ -49,6 +49,12 @@ func setupRoutes(
 		util.ShouldBindUri,
 	))
 
+	routes.PUT("/profile", util.MakeHandler(
+		userHandler.UpdateHandler,
+		util.ShouldBindJWT,
+		util.ShouldBindJSON,
+	))
+
 	authHandler := auth.NewHandler(
 		userRepo,
 		userTokenRepo,
