@@ -76,6 +76,11 @@ func setupRoutes(
 		transferRepo,
 	)
 
+	routes.GET("/transactions", util.MakeHandler(
+		transactionHandler.GetHandler,
+		util.ShouldBindJWT,
+	))
+
 	routes.POST("/topup", util.MakeHandler(
 		transactionHandler.TopUpHandler,
 		util.ShouldBindJWT,
