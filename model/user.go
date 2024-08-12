@@ -17,7 +17,11 @@ type User struct {
 	Address     string    `json:"address"`
 	Pin         string    `json:"-"`
 	IsDeleted   bool      `json:"-"`
-	CreatedAt   time.Time `json:"created_at"`
+	CreatedAt   time.Time `json:"-"`
+	UpdatedAt   time.Time `json:"-"`
+
+	CreatedDate string `json:"created_date" gorm:"-"`
+	UpdatedDate string `json:"updated_date" gorm:"-"`
 }
 
 type UserRepo interface {
