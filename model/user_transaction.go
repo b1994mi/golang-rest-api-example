@@ -1,6 +1,7 @@
 package model
 
 import (
+	"strings"
 	"time"
 
 	"github.com/b1994mi/golang-rest-api-example/util"
@@ -55,7 +56,7 @@ type UserTransactionRepo interface {
 	Delete(m *UserTransaction, tx *gorm.DB) error
 	FindOneBy(criteria map[string]any) (*UserTransaction, error)
 	FindOneForUpdateBy(criteria map[string]any, tx *gorm.DB) (*UserTransaction, error)
-	FindBy(criteria map[string]any, page, size int) ([]*UserTransaction, error)
+	FindBy(criteria map[string]any, page, size int, sort ...string) ([]*UserTransaction, error)
 	Count(criteria map[string]any) int64
 }
 
@@ -112,7 +113,7 @@ func (rpo *userTransactionRepo) FindOneForUpdateBy(criteria map[string]any, tx *
 	return &m, nil
 }
 
-func (rpo *userTransactionRepo) FindBy(criteria map[string]any, page, size int) ([]*UserTransaction, error) {
+func (rpo *userTransactionRepo) FindBy(criteria map[string]any, page, size int, sort ...string) ([]*UserTransaction, error) {
 	var data []*UserTransaction
 	if page == 0 || size == 0 {
 		page, size = -1, -1
@@ -122,6 +123,7 @@ func (rpo *userTransactionRepo) FindBy(criteria map[string]any, page, size int) 
 	err := rpo.db.
 		Where(criteria).
 		Offset(offset).Limit(limit).
+		Order(strings.Join(sort, ",")).
 		Find(&data).Error
 	if err != nil {
 		return nil, err
