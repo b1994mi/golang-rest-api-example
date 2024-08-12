@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/b1994mi/golang-rest-api-example/handler/auth"
@@ -81,4 +83,70 @@ func setupRoutes(
 	))
 
 	return routes
+}
+
+func setupConsumer(
+	db *gorm.DB,
+	conn *amqp.Connection,
+) error {
+	ch, err := conn.Channel()
+	if err != nil {
+		return err
+	}
+
+	_, err = ch.QueueDeclare(
+		"transfer",
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
+	msgs, err := ch.Consume(
+		"transfer",
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		// TODO: make this as a makeHandler style method for dependency injection
+		// and easier to create new consumers for different queue
+		userRepo := model.NewUserRepo(db)
+		userTransactionRepo := model.NewUserTransactionRepo(db)
+		transferRepo := message.NewTransferRepo(conn)
+
+		transactionHandler := transaction.NewHandler(
+			userRepo,
+			userTransactionRepo,
+			transferRepo,
+		)
+
+		var data message.Transfer
+		for d := range msgs {
+			log.Printf("Recieved Message: %s\n", d.Body)
+
+			err := json.Unmarshal(d.Body, &data)
+			if err != nil {
+				log.Println(err)
+			}
+
+			err = transactionHandler.TransferConsumer(&data)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+	}()
+
+	return nil
 }
